@@ -1,11 +1,11 @@
-use std::fs::File;
-use std::{fs, io};
-use std::io::{BufReader, Read};
-use std::path::{Path, PathBuf};
-use std::process::exit;
 use random_str::get_string;
 use rpassword::prompt_password;
 use sha2::{Digest, Sha256};
+use std::fs::File;
+use std::io::{BufReader, Read};
+use std::path::Path;
+use std::process::exit;
+use std::fs;
 
 const ARREST: &str = "ar";
 const RELEASE: &str = "rl";
