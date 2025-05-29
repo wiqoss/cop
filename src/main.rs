@@ -23,7 +23,7 @@ fn main() {
     }
     
     let file = &args[2];
-    if !Path::new(file).exists() {
+    if !Path::new(file).is_file() {
         println!("File {} does not exist", file);
         exit(1);
     }
@@ -38,7 +38,7 @@ fn main() {
     }
 }
 
-fn process_file(file: &str, password: &str, encrypt: bool) {
+fn process_file(file: &str, password: &str, encrypt: bool) -> String {
     let tmp_file = format!("{}.tmp", file);
     let mut c = encryptfile::Config::new();
     c.input_stream(encryptfile::InputStream::File(file.to_owned()))
@@ -58,22 +58,26 @@ fn process_file(file: &str, password: &str, encrypt: bool) {
 
     encryptfile::process(&c).unwrap_or_else(|e| 
         { panic!("Error {}crypting: {:?}", if encrypt { "en" } else { "de" }, e) });
-    fs::rename(&tmp_file, file).expect("Failed to overwrite original file");
+    tmp_file
 }
 
 
 fn arrest(file: &str) {
     let sha256 = sha256sum(file);
     let password = get_string(PASSWORD_LENGTH, true, true, true, false);
-    process_file(file, &password, true);
+    let tmp_file = process_file(file, &password, true);
+    fs::rename(&tmp_file, file).expect("Failed to overwrite original file");
     println!("Your key: {}", get_key(&sha256, &password));
 }
 
 fn release(file: &str, key: &str) {
     let (sha256, password) = unpack_key(key);
-    process_file(file, &password, false);
-    if sha256sum(file) != sha256 {
-        eprintln!("Checksum mismatch");
+    let tmp_file = process_file(file, &password, false);
+    if sha256sum(&tmp_file) != sha256 {
+        eprintln!("Checksum mismatch. Exiting");
+        exit(2);
+    } else {
+        fs::rename(&tmp_file, file).expect("Failed to overwrite original file");
     }
 }
 
