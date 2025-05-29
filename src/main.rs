@@ -8,17 +8,17 @@ use rpassword::prompt_password;
 use sha2::{Digest, Sha256};
 
 const ARREST: &str = "ar";
-const FREE: &str = "fr";
+const RELEASE: &str = "rl";
 const PASSWORD_LENGTH: usize = 64;
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
     if args.len() < 3 {
-        println!("Usage: {} <arrest ({}) or free ({})> <file>", args[0], ARREST, FREE);
+        println!("Usage: {} <arrest ({}) or release ({})> <file>", args[0], ARREST, RELEASE);
         exit(1);
     }
-    if args[1] != ARREST && args[1] != FREE {
-        println!("Usage: {} <arrest ({}) or free ({})> <file>", args[0], ARREST, FREE);
+    if args[1] != ARREST && args[1] != RELEASE {
+        println!("Usage: {} <arrest ({}) or release ({})> <file>", args[0], ARREST, RELEASE);
         exit(1);
     }
     
@@ -33,8 +33,8 @@ fn main() {
         arrest(file);
     } else {
         let key = prompt_password("Enter key: ").expect("Failed to read password");
-        println!("Freeing {}", file);
-        free(file, key.as_str());
+        println!("Releasing {}", file);
+        release(file, key.as_str());
     }
 }
 
@@ -69,7 +69,7 @@ fn arrest(file: &str) {
     println!("Your key: {}", get_key(&sha256, &password));
 }
 
-fn free(file: &str, key: &str) {
+fn release(file: &str, key: &str) {
     let (sha256, password) = unpack_key(key);
     process_file(file, &password, false);
     if sha256sum(file) != sha256 {
